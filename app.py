@@ -18,25 +18,25 @@ def allowed_file(filename):
 def index():
     return '''
     <!doctype html>
-<html lang="es">
-<head>
+    <html lang="es">
+    <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
     <title>REPORTES</title>
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
-</head>
-<body>
+    </head>
+    <body>
     <div class="container">
         <div class="row justify-content-center">
             <div class="col-md-8">
                 <h1 class="mt-5 mb-4 text-center">GENERA TU REPORTE DE CAMPAÑA</h1>
                 <form method="post" enctype="multipart/form-data" action="/upload">
                     <div class="form-group">
-                        <input type="text" class="form-control" id="Cliente" name="Cliente" placeholder="Nombre Cliente" required>
+                        <input type="text" class="form-control" id="Cliente" name="Cliente" placeholder="Cliente" required>
                     </div>
                     <div class="form-group">
                         <select class="form-control" id="Mes" name="Mes" required>
-                            <option value="">Selecciona un mes</option>
+                            <option value="">Selecciona mes</option>
                             <option value="Enero">Enero</option>
                             <option value="Febrero">Febrero</option>
                             <option value="Marzo">Marzo</option>
@@ -52,7 +52,7 @@ def index():
                         </select>
                     </div>
                     <div class="form-group">
-                        <input type="text" class="form-control" id="Pantalla" name="Pantalla" placeholder="Nombre Pantalla" required>
+                        <input type="text" class="form-control" id="Pantalla" name="Pantalla" placeholder="Ubicación" required>
                     </div>
                     <div class="form-group">
                         <input type="text" class="form-control" id="Elemento" name="Elemento" placeholder="Tipo elemento" required>
@@ -116,7 +116,7 @@ def upload_files():
     imagen_presentacion(slide, pagina3_path)
     nombre_comercial(slide, pantalla)
 
-    # Añadir las imágenes subidas a partir de la cuarta diapositiva
+    # Añadir las imágenes subidas 
     for index, file in enumerate(files):
         if file and allowed_file(file.filename):
             filename = secure_filename(file.filename)
