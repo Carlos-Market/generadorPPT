@@ -9,29 +9,15 @@ from datetime import datetime
 from io import BytesIO
 
 app = Flask(__name__)
-
-# Configuración de carpetas y extensiones permitidas
 UPLOAD_FOLDER = 'uploads'
-ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg'}
+ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif'}
+app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 
 def allowed_file(filename):
     return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
 
-def formato_miles(numero):
-    return '{:,}'.format(numero).replace(',', '.')
-
 @app.route('/')
 def index():
-    ubicaciones = [
-        "Alcalá", "Avenida 68", "Banderas", "Calle 100", "Calle 127", "Calle 146",
-        "Calle 45", "Calle 76", "Calle 85", "El Campín", "Héroes", "Movistar arena",
-        "NQS Calle 38a Sur", "Paloquemao", "Pepe sierra", "Portal 80", "Portal Américas",
-        "Portal El Dorado", "Portal Norte", "Portal Suba", "Portal Sur", "Suba Calle 100",
-        "Toberin", "Universidades", "Virrey"
-    ]
-
-    options = ''.join([f'<option value="{ubicacion}">{ubicacion}</option>' for ubicacion in ubicaciones])
-
     return '''
     <!doctype html>
     <html lang="es">
@@ -67,19 +53,11 @@ def index():
                     <div id="ubicaciones-container">
                         <div class="ubicacion-group">
                             <div class="form-group">
-                                <select class="form-control" name="Ubicacion[]" required onchange="updateElemento(this)">
-                                    <option value="">Selecciona ubicación</option>
-                                    ''' + options + '''
-                                </select>
+                                <input type="text" class="form-control" id="Ubicacion" name="Ubicacion[]" placeholder="Ubicacion" required>
                             </div>
                             <div class="form-group">
-                                <input type="text" class="form-control" name="Elemento[]" id="elemento" placeholder="Tipo de elemento" readonly>
+                                <input type="text" class="form-control" name="Elemento[]" id="elemento" placeholder="Tipo de elemento">
                             </div>
-                            
-                            <div class="form-group">
-                                <input type="text" class="form-control" name="Trafico[]" placeholder="Trafico" required>
-                            </div>
-
                             <div class="form-group">
                                 <label>Sube tus imágenes</label>
                                 <input type="file" class="form-control-file" name="files_0[]" multiple required>
@@ -100,17 +78,10 @@ def index():
             newGroup.classList.add('ubicacion-group');
             newGroup.innerHTML = `
                 <div class="form-group">
-                    <select class="form-control" name="Ubicacion[]" required onchange="updateElemento(this)">
-                        <option value="">Selecciona ubicación</option>
-                        ''' + options + '''
-                    </select>
+                    <input type="text" class="form-control" id="Ubicacion" name="Ubicacion[]" placeholder="Ubicacion" required>
                 </div>
                 <div class="form-group">
-                    <input type="text" class="form-control" name="Elemento[]" id="elemento" placeholder="Tipo de elemento" readonly>
-                </div>
-                
-                <div class="form-group">
-                    <input type="text" class="form-control" name="Trafico[]" placeholder="Trafico" required>
+                    <input type="text" class="form-control" name="Elemento[]" id="elemento" placeholder="Tipo de elemento">
                 </div>
 
                 <div class="form-group">
@@ -120,25 +91,10 @@ def index():
             container.appendChild(newGroup);
             ubicacionCounter++;
         }
-
-        function updateElemento(select) {
-            var elementoInput = select.parentElement.nextElementSibling.querySelector('input');
-            if (select.value === 'Alcalá' || select.value === 'Avenida 68' || select.value === 'Banderas' ||
-                select.value === 'Calle 127' || select.value === 'Calle 146' || select.value === 'Calle 45' ||
-                select.value === 'Calle 76' || select.value === 'Calle 85' || select.value === 'El Campín' ||
-                select.value === 'Movistar arena' || select.value === 'NQS Calle 38a Sur' || select.value === 'Paloquemao' ||
-                select.value === 'Pepe sierra' || select.value === 'Suba Calle 100' || select.value === 'Toberin' ||
-                select.value === 'Virrey') {
-                elementoInput.value = 'Tótem digital';
-            } else if (select.value === 'Calle 100' || select.value === 'Héroes' || select.value === 'Portal 80' ||
-                    select.value === 'Portal Américas' || select.value === 'Portal El Dorado' || select.value === 'Portal Norte' ||
-                    select.value === 'Portal Suba' || select.value === 'Portal Sur' || select.value === 'Universidades') {
-                elementoInput.value = 'Pantalla Gran Formato';
-            } else {
-                elementoInput.value = '';
-            }
-        }
     </script>
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.5.4/dist/umd/popper.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
     </body>
     </html>
     '''
@@ -150,11 +106,6 @@ def upload_files():
     
     ubicaciones = request.form.getlist('Ubicacion[]')
     elementos = request.form.getlist('Elemento[]')
-    
-    trafico = request.form.getlist('Trafico[]')
-    
-    # Formatear 'trafico' con separadores de miles
-    # trafico = formato_miles(int(trafico))
     
     # Crear presentación PowerPoint
     ppt = Presentation()
@@ -179,7 +130,7 @@ def upload_files():
     imagen_presentacion(slide, pagina2_path)
     
     # Procesar todas las ubicaciones y sus archivos
-    for i, (ubicacion, elemento, trafico) in enumerate(zip(ubicaciones, elementos, trafico)):
+    for i, (ubicacion, elemento) in enumerate(zip(ubicaciones, elementos)):
         file_key = f'files_{i}[]'
         files = request.files.getlist(file_key)
         
@@ -200,14 +151,14 @@ def upload_files():
                     slide = ppt.slides.add_slide(slide_layout)  # Agregar diapositiva en blanco
                     imagen_presentacion(slide, pagina3_path)
                     slide.shapes.add_picture(img_stream, top=Inches(1.2), left=Inches(4), height=Inches(5.1), width=Inches(9))
-                    info_foto(slide, elemento, ubicacion, mes, trafico)  # Nota el cambio en el orden aquí
+                    info_foto(slide, elemento, ubicacion, mes)  # Nota el cambio en el orden aquí
                 except (IOError, SyntaxError) as e:
                     return f'Error al procesar la imagen: {filename}', 400
-                
+
     # Añadir la antepenúltima diapositiva fija
     slide = ppt.slides.add_slide(slide_layout)
     imagen_presentacion(slide, penultima_path)
-
+    
     # Añadir la última diapositiva fija
     slide = ppt.slides.add_slide(slide_layout)
     imagen_presentacion(slide, ultima_pagina_path)
@@ -227,8 +178,8 @@ def imagen_presentacion(slide, img_path):
     img_height = Inches(7.5)
     slide.shapes.add_picture(img_path, img_left, img_top, width=img_width, height=img_height)
 
-def info_foto(slide, elemento, ubicacion, mes, trafico):
-    textbox = slide.shapes.add_textbox(top=Inches(2.12), left=Inches(0.5), height=Inches(3.5), width=Inches(1))
+def info_foto(slide, elemento, ubicacion, mes):
+    textbox = slide.shapes.add_textbox(top=Inches(2.8), left=Inches(0.5), height=Inches(3.5), width=Inches(1))
     text_frame = textbox.text_frame
 
     p1 = text_frame.add_paragraph()
@@ -256,20 +207,6 @@ def info_foto(slide, elemento, ubicacion, mes, trafico):
     p4.font.size = Pt(16)
     p4.font.color.rgb = RGBColor(0, 0, 0) 
     
-     # Párrafo vacío para separación
-    text_frame.add_paragraph().text = ""
-    
-    p5 = text_frame.add_paragraph()
-    p5.text = "TRAFICO A " + mes
-    p5.font.bold = True
-    p5.font.size = Pt(16)
-    p5.font.color.rgb = RGBColor(153, 146, 144)
-    
-    p6 = text_frame.add_paragraph()
-    p6.text = trafico
-    p6.font.size = Pt(16)
-    p6.font.color.rgb = RGBColor(0, 0, 0) 
-    
     # Cuadro de texto para la fecha
     fecha_actual = datetime.now().strftime("%d/%m/%Y")
     fecha_textbox = slide.shapes.add_textbox(top=Inches(5.65), left=Inches(11.72), width=Inches(1.2), height=Inches(0.2))
@@ -279,6 +216,7 @@ def info_foto(slide, elemento, ubicacion, mes, trafico):
     p_fecha.text = fecha_actual
     p_fecha.font.size = Pt(16)
     p_fecha.font.color.rgb = RGBColor(255, 255, 255)
+    
 
 if __name__ == '__main__':
     os.makedirs(UPLOAD_FOLDER, exist_ok=True)
